@@ -491,10 +491,11 @@ function _createVNode(
   type: VNodeTypes | ClassComponent | typeof NULL_DYNAMIC_COMPONENT,
   props: (Data & VNodeProps) | null = null,
   children: unknown = null,
-  patchFlag: number = 0,
-  dynamicProps: string[] | null = null,
-  isBlockNode = false
+  patchFlag: number = 0, // 更新标识
+  dynamicProps: string[] | null = null, // 自定义属性
+  isBlockNode = false // 是否为动态节点 (v-if v-for)
 ): VNode {
+  // type必传参数
   if (!type || type === NULL_DYNAMIC_COMPONENT) {
     if (__DEV__ && !type) {
       warn(`Invalid vnode type when creating vnode: ${type}.`)
@@ -513,6 +514,7 @@ function _createVNode(
     return cloned
   }
 
+  // Class 类型的type标准化
   // class component normalization.
   if (isClassComponent(type)) {
     type = type.__vccOpts
@@ -528,9 +530,11 @@ function _createVNode(
     // for reactive or proxy objects, we need to clone it to enable mutation.
     props = guardReactiveProps(props)!
     let { class: klass, style } = props
+    // 标准化class, 支持 string , array, object 三种形式
     if (klass && !isString(klass)) {
       props.class = normalizeClass(klass)
     }
+    // 标准化style, 支持 array ,object 两种形式 
     if (isObject(style)) {
       // reactive state objects need to be cloned since they are likely to be
       // mutated
@@ -566,6 +570,7 @@ function _createVNode(
     )
   }
 
+  // 构造 VNode 模型
   return createBaseVNode(
     type,
     props,
@@ -577,7 +582,7 @@ function _createVNode(
     true
   )
 }
-
+// props 如果是响应式，clone 一个副本
 export function guardReactiveProps(props: (Data & VNodeProps) | null) {
   if (!props) return null
   return isProxy(props) || InternalObjectKey in props

@@ -2353,6 +2353,7 @@ function baseCreateRenderer(
   return {
     render,
     hydrate,
+    // 这里就是 createAppc方法
     createApp: createAppAPI(render, hydrate)
   }
 }

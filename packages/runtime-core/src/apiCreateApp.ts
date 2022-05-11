@@ -187,7 +187,7 @@ export function createAppAPI<HostElement>(
       __DEV__ && warn(`root props passed to app.mount() must be an object.`)
       rootProps = null
     }
-
+    // 创建默认APP配置
     const context = createAppContext()
     const installedPlugins = new Set()
 
@@ -214,7 +214,7 @@ export function createAppAPI<HostElement>(
           )
         }
       },
-
+      // 眼熟的方法
       use(plugin: Plugin, ...options: any[]) {
         if (installedPlugins.has(plugin)) {
           __DEV__ && warn(`Plugin has already been applied to target app.`)
