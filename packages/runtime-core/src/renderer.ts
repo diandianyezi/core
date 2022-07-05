@@ -352,8 +352,8 @@ function baseCreateRenderer(
   // Note: functions inside this closure should use `const xxx = () => {}`
   // style in order to prevent being inlined by minifiers.
   const patch: PatchFn = (
-    n1,
-    n2,
+    n1, // 老节点 
+    n2, // 新节点
     container,
     anchor = null,
     parentComponent = null,
@@ -377,7 +377,7 @@ function baseCreateRenderer(
       optimized = false
       n2.dynamicChildren = null
     }
-
+    // 判断新节点类型
     const { type, ref, shapeFlag } = n2
     switch (type) {
       case Text:
@@ -420,6 +420,7 @@ function baseCreateRenderer(
             optimized
           )
         } else if (shapeFlag & ShapeFlags.COMPONENT) {
+          // 首次挂载组件走这里
           processComponent(
             n1,
             n2,
@@ -1158,6 +1159,7 @@ function baseCreateRenderer(
     optimized: boolean
   ) => {
     n2.slotScopeIds = slotScopeIds
+    // 首次渲染
     if (n1 == null) {
       if (n2.shapeFlag & ShapeFlags.COMPONENT_KEPT_ALIVE) {
         ;(parentComponent!.ctx as KeepAliveContext).activate(
@@ -1168,6 +1170,7 @@ function baseCreateRenderer(
           optimized
         )
       } else {
+        // 挂载根组件
         mountComponent(
           n2,
           container,
@@ -1196,7 +1199,11 @@ function baseCreateRenderer(
     // mounting
     const compatMountInstance =
       __COMPAT__ && initialVNode.isCompatRoot && initialVNode.component
-    const instance: ComponentInternalInstance =
+      /* 
+        组件挂载过程:
+        1. 创建组件实例
+      */
+      const instance: ComponentInternalInstance =
       compatMountInstance ||
       (initialVNode.component = createComponentInstance(
         initialVNode,
@@ -1223,6 +1230,7 @@ function baseCreateRenderer(
       if (__DEV__) {
         startMeasure(instance, `init`)
       }
+      // 2. 初始化组件实例
       setupComponent(instance)
       if (__DEV__) {
         endMeasure(instance, `init`)
@@ -1241,8 +1249,12 @@ function baseCreateRenderer(
         processCommentNode(null, placeholder, container!, anchor)
       }
       return
-    }
-
+    }  
+    // 获取vnode
+    // 1. 创建一个组件更新函数
+    // 1.1. render 获取vnode
+    // 1.2. patch(oldvnode, vnode)
+    // 3. 创建更新机制 new ReactiveEffect(更新函数)
     setupRenderEffect(
       instance,
       initialVNode,
@@ -1303,6 +1315,7 @@ function baseCreateRenderer(
     isSVG,
     optimized
   ) => {
+    // 1. 创建一个组件更新函数
     const componentUpdateFn = () => {
       if (!instance.isMounted) {
         let vnodeHook: VNodeHook | null | undefined
@@ -1542,6 +1555,7 @@ function baseCreateRenderer(
     }
 
     // create reactive effect for rendering
+    // 2. 创建更新机制
     const effect = (instance.effect = new ReactiveEffect(
       componentUpdateFn,
       () => queueJob(instance.update),
@@ -2299,13 +2313,15 @@ function baseCreateRenderer(
     }
     return hostNextSibling((vnode.anchor || vnode.el)!)
   }
-
   const render: RootRenderFunction = (vnode, container, isSVG) => {
     if (vnode == null) {
       if (container._vnode) {
         unmount(container._vnode, null, null, true)
       }
     } else {
+      // 首次执行，传入根组件vnode 参数1是null
+      // 所以首次执行挂载过程
+      // vnode会被patch转化为真实dom，并追加到参数2 container容器中
       patch(container._vnode || null, vnode, container, null, null, null, isSVG)
     }
     flushPostFlushCbs()
@@ -2334,8 +2350,9 @@ function baseCreateRenderer(
   }
 
   return {
-    render,
-    hydrate,
+    render, // 接受到的vnode转换成dom，追加到宿主元素
+    hydrate, // ssr，服务端将一个vnode生成为html
+    // 创建app实例
     createApp: createAppAPI(render, hydrate)
   }
 }

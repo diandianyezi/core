@@ -178,7 +178,8 @@ export function createAppAPI<HostElement>(
   render: RootRenderFunction,
   hydrate?: RootHydrateFunction
 ): CreateAppFunction<HostElement> {
-  return function createApp(rootComponent, rootProps = null) {
+  // 用户创建的app实例也是这个函数生成的
+  return function  (rootComponent, rootProps = null) {
     if (rootProps != null && !isObject(rootProps)) {
       __DEV__ && warn(`root props passed to app.mount() must be an object.`)
       rootProps = null
@@ -273,7 +274,7 @@ export function createAppAPI<HostElement>(
         context.directives[name] = directive
         return app
       },
-
+      // 挂载函数，首次执行并未挂载，执行mount
       mount(
         rootContainer: HostElement,
         isHydrate?: boolean,

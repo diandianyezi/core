@@ -6,9 +6,11 @@
 const { build } = require('esbuild')
 const nodePolyfills = require('@esbuild-plugins/node-modules-polyfill')
 const { resolve, relative } = require('path')
+// 获取命令行参数
 const args = require('minimist')(process.argv.slice(2))
-
+// 设置打包目标  打包哪些package 默认为vue
 const target = args._[0] || 'vue'
+// 输出合适 比如cjs esm global
 const format = args.f || 'global'
 const inlineDeps = args.i || args.inline
 const pkg = require(resolve(__dirname, `../packages/${target}/package.json`))

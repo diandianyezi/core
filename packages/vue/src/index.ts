@@ -12,13 +12,16 @@ if (__DEV__) {
 }
 
 const compileCache: Record<string, RenderFunction> = Object.create(null)
-
+// 定义编译函数
+// 为浏览器平台 单独编写一个编译函数
 function compileToFunction(
   template: string | HTMLElement,
   options?: CompilerOptions
 ): RenderFunction {
   if (!isString(template)) {
+    // dom
     if (template.nodeType) {
+      // 从宿主元素的innerHTML获取模板
       template = template.innerHTML
     } else {
       __DEV__ && warn(`invalid template option: `, template)
@@ -31,7 +34,7 @@ function compileToFunction(
   if (cached) {
     return cached
   }
-
+  // 用户传入的是选择器
   if (template[0] === '#') {
     const el = document.querySelector(template)
     if (__DEV__ && !el) {
@@ -43,10 +46,10 @@ function compileToFunction(
     // by the server, the template should not contain any user data.
     template = el ? el.innerHTML : ``
   }
-
+  // 执行编译
   const { code } = compile(
     template,
-    extend(
+    extend(     
       {
         hoistStatic: true,
         onError: __DEV__ ? onError : undefined,
@@ -74,6 +77,16 @@ function compileToFunction(
   // with keys that cannot be mangled, and can be quite heavy size-wise.
   // In the global build we know `Vue` is available globally so we can avoid
   // the wildcard object.
+  /* code: 
+    `const _Vue = Vue;
+      return function render(_ctx, _cache) {
+        with(_ctx) {
+          const { toDisplayString: _toDisplayString, open }...
+          return {_openBlock(), _createElementBlock("h1", )}
+        }
+      } 
+    `
+    */
   const render = (
     __GLOBAL__ ? new Function(code)() : new Function('Vue', code)(runtimeDom)
   ) as RenderFunction
